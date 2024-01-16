@@ -1,82 +1,53 @@
 ```markdown
-# Angular ESBuild ExecuteBuild Documentation
+# Angular Devkit Build Angular - Execute Build Function
 
-This documentation provides an overview of the `executeBuild` function within the Angular ESBuild package. The `executeBuild` function is responsible for orchestrating the build process of Angular applications using ESBuild. The build process involves several steps including but not limited to translating inline i18n, bundling application code, global styles, and global scripts, extracting licenses, and copying assets.
+This documentation explains the `executeBuild` function contained within Angular's Devkit for building Angular applications. The function manages the process of building a browser or server application using various tools and configurations.
 
 ## Function Documentation
 
-### executeBuild
+### `executeBuild`
 
-The `executeBuild` function takes three parameters:
+The `executeBuild` function is responsible for executing the build of an Angular application. It handles compiling the source code, inlining translations, copying assets, checking for CommonJS modules, validating budgets, and providing extensive stats about the build if required.
 
-- `options` of type `NormalizedApplicationBuildOptions` which includes all the necessary options to configure the build process.
-- `context` of type `BuilderContext` which provides the build context that contains various utilities for logging and interacting with the build process.
-- `rebuildState` which is an optional parameter of type `RebuildState` that captures the state for watch mode rebuilds.
+#### Parameters:
+- `options` - (`NormalizedApplicationBuildOptions`) The standardized build options that contain paths, optimization flags, and other necessary configurations.
+- `context` - (`BuilderContext`) Provides context such as logging and file access for build operations.
+- `rebuildState` - (`RebuildState`) Optional parameter that holds state information for reuse during rebuilds in watch mode.
 
-A high-level flow of the `executeBuild` function is as follows:
+#### Returns:
+- (`Promise<ExecutionResult>`) The function returns a promise that resolves to an `ExecutionResult` containing details of outputs, assets, and any errors that occurred.
 
-1. Initialize the start time for performance measurements.
-2. Determine the set of supported browsers and transform them into ESBuild targets.
-3. Load active translations if inlining i18n is required.
-4. Create or reuse bundler contexts for bundling application code, polyfills, global scripts, and styles.
-5. Perform the actual bundling process using ESBuild through the `BundlerContext.bundleAll` method.
-6. Log any messages resulting from the bundling process.
-7. Handle the execution of the build process, including checks for CommonJS modules if necessary.
-8. Copy specified assets to the output directory.
-9. Extract and write licenses for packages used if configured to do so.
-10. Analyze built files against budget constraints if defined, and log any budget-related issues.
-11. Calculate estimated transfer sizes for minified scripts and styles if optimization is enabled.
-12. Inline i18n translations or execute post-bundle steps depending on the i18n configurations.
-13. Log the final build statistics including budget failures, transfer sizes, and build time.
-14. If the `stats` option is enabled, generate a build statistics metafile.
-15. Return an instance of `ExecutionResult`, containing information about the executed build.
+#### High-Level Flow:
+1. Determine the project's supported browsers and transform them into esbuild targets.
+2. If internationalization (i18n) is enabled, load active translations.
+3. Create new or reuse existing `BundlerContexts` for the different parts of the application (e.g., application code, stylesheets, scripts).
+4. Perform the actual bundling logic by calling `BundlerContext.bundleAll`.
+5. Handle logging of messages from the bundling process.
+6. If there are any errors, exit early with the results obtained thus far.
+7. Execute asset copying and license extraction if enabled.
+8. Analyze the bundle for budget violations if budget checks are configured.
+9. Calculate estimated file transfer sizes if optimization is enabled.
+10. Inline translations if i18n is enabled or execute post-build steps.
+11. Log overall build statistics.
+12. Record the build time and print it.
+13. Generate and save stats file if the stats option is enabled.
+14. Return the `ExecutionResult`.
 
-```plaintext
-(start)
- │
- ├──> Determine the supported browsers
- │
- ├──> Load active translations (if i18n inline is enabled)
- │
- ├──> Create or reuse bundler contexts
- │
- ├─┬> Bundle application code & styles
- │ │
- │ └──> Log messages resulting from bundling
- │
- ├──> Check for CommonJS module usage (if scripts optimization is enabled)
- │
- ├──> Copy assets (if specified)
- │
- ├──> Extract licenses (if extractLicenses is enabled)
- │
- ├──> Analyze bundle budgets (if budgets are specified)
- │
- ├──> Calculate transfer sizes (if optimization is enabled)
- │
- ├─┬> Inline i18n translations (if i18n inline is enabled)
- │ │
- │ └──> Execute post-bundle steps (if i18n inline is not enabled)
- │
- ├──> Log build stats (budget failures, transfer sizes)
- │
- ├──> Generate build stats metafile (if stats option is enabled)
- │
- └──> Return ExecutionResult
-(end)
-```
+**Additional Function: `printWarningsAndErrorsToConsole`**
+- Prints warnings and errors captured during the build process to the console via the provided `BuilderContext`.
 
-### printWarningsAndErrorsToConsole
+### Dependencies
+This function relies on a substantial number of internal tools and utilities provided by the Angular Devkit. The list of direct imports includes:
 
-A utility function that takes a BuilderContext, a list of warning messages, and a list of error messages as parameters. It iterates through the errors and warnings and logs them using the context's logger, marking them appropriately as errors or warnings in the console.
+- Architectural objects and helpers such as `BuilderContext`.
+- Cache management with `SourceFileCache`.
+- Bundle option creators for browser and server contexts.
+- Budget stats generation.
+- CommonJS checkers, global script/style bundling options, and license extractors.
+- Utilities for copying assets, determining supported browsers/node versions, logging build stats, and transforming browsers into targets.
+- Bundling-related objects and results such as `BuildOutputFileType` and `BundlerContext`.
+- Post-bundle execution steps.
+- i18n inlining functions and translation loaders.
 
-## Dependencies
-
-This module relies on several Angular ESBuild tools and utilities. Since it's part of an Angular package, the actual installation and handling of these dependencies are managed by the Angular CLI and its build system. Users integrating this code into their projects will not typically interact with these dependencies directly.
-
-However, for an independent setup or for contribution purposes, the following tools are employed and their corresponding packages would be required:
-
-- `@angular-devkit/architect`
-- ESBuild and related ESBuild Angular plugins
-- Other Angular utility modules for tasks like bundle calculation, asset copying, and i18n handling
+To make use of this function in the applications, ensure all parent packages and dependencies are correctly installed via the Angular package manager, using `npm` or `yarn`.
 ```
