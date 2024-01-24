@@ -1,53 +1,72 @@
-```markdown
-# Angular Devkit Build Angular - Execute Build Function
+# `execute-build.ts` Documentation
 
-This documentation explains the `executeBuild` function contained within Angular's Devkit for building Angular applications. The function manages the process of building a browser or server application using various tools and configurations.
+This documentation provides an overview and details for the `execute-build.ts` module which is part of the Angular CLI's build process. Specifically, it contains the main build execution function for compiling and bundling an Angular application as well as helper utilities to facilitate this process.
 
-## Function Documentation
+## `executeBuild` Function
 
-### `executeBuild`
+The `executeBuild` function is the central part of this module, orchestrating the build process of an Angular application. It accepts normalized build options, the builder context, and an optional rebuild state for when the build process is executed in watch mode.
 
-The `executeBuild` function is responsible for executing the build of an Angular application. It handles compiling the source code, inlining translations, copying assets, checking for CommonJS modules, validating budgets, and providing extensive stats about the build if required.
+### Process Flow
 
-#### Parameters:
-- `options` - (`NormalizedApplicationBuildOptions`) The standardized build options that contain paths, optimization flags, and other necessary configurations.
-- `context` - (`BuilderContext`) Provides context such as logging and file access for build operations.
-- `rebuildState` - (`RebuildState`) Optional parameter that holds state information for reuse during rebuilds in watch mode.
+1. Initialize start time and destructure options.
+2. Retrieve supported browsers and transform them to ESBuild targets.
+3. If i18n is enabled, load active translations.
+4. Either reuse the rebuild state or create new bundle contexts for various build aspects such as the application code, polyfills, global styles, and server code.
+5. Execute the bundling process for all contexts.
+6. Log any errors or warnings from the bundling process.
+7. Early return if bundling errors are detected.
+8. Copy asset files to the output location if defined.
+9. Extract and write licenses if the `extractLicenses` option is enabled.
+10. Analyze the output for any bundle budget issues.
+11. Estimate transfer sizes if applicable.
+12. Either perform i18n translation inlining or execute additional post-bundle steps.
+13. Log final build statistics.
+14. Record the overall build time and print it to the console.
+15. Generate and store build statistics if the `stats` option is enabled.
 
-#### Returns:
-- (`Promise<ExecutionResult>`) The function returns a promise that resolves to an `ExecutionResult` containing details of outputs, assets, and any errors that occurred.
+### Function Signature
 
-#### High-Level Flow:
-1. Determine the project's supported browsers and transform them into esbuild targets.
-2. If internationalization (i18n) is enabled, load active translations.
-3. Create new or reuse existing `BundlerContexts` for the different parts of the application (e.g., application code, stylesheets, scripts).
-4. Perform the actual bundling logic by calling `BundlerContext.bundleAll`.
-5. Handle logging of messages from the bundling process.
-6. If there are any errors, exit early with the results obtained thus far.
-7. Execute asset copying and license extraction if enabled.
-8. Analyze the bundle for budget violations if budget checks are configured.
-9. Calculate estimated file transfer sizes if optimization is enabled.
-10. Inline translations if i18n is enabled or execute post-build steps.
-11. Log overall build statistics.
-12. Record the build time and print it.
-13. Generate and save stats file if the stats option is enabled.
-14. Return the `ExecutionResult`.
-
-**Additional Function: `printWarningsAndErrorsToConsole`**
-- Prints warnings and errors captured during the build process to the console via the provided `BuilderContext`.
-
-### Dependencies
-This function relies on a substantial number of internal tools and utilities provided by the Angular Devkit. The list of direct imports includes:
-
-- Architectural objects and helpers such as `BuilderContext`.
-- Cache management with `SourceFileCache`.
-- Bundle option creators for browser and server contexts.
-- Budget stats generation.
-- CommonJS checkers, global script/style bundling options, and license extractors.
-- Utilities for copying assets, determining supported browsers/node versions, logging build stats, and transforming browsers into targets.
-- Bundling-related objects and results such as `BuildOutputFileType` and `BundlerContext`.
-- Post-bundle execution steps.
-- i18n inlining functions and translation loaders.
-
-To make use of this function in the applications, ensure all parent packages and dependencies are correctly installed via the Angular package manager, using `npm` or `yarn`.
+```typescript
+export async function executeBuild(
+  options: NormalizedApplicationBuildOptions,
+  context: BuilderContext,
+  rebuildState?: RebuildState,
+): Promise<ExecutionResult>
 ```
+
+This function performs numerous tasks, from initializing build contexts to performing budget checks and inline translation processes. It utilizes several utilities and helper functions to manage tasks like logging, asset copying, license extraction, and post-bundle operations.
+
+## Helper Functions
+
+- `printWarningsAndErrorsToConsole`: Utility function that logs warnings and errors to the console using the provided builder context.
+
+### Function Signature
+
+```typescript
+function printWarningsAndErrorsToConsole(
+  context: BuilderContext,
+  warnings: string[],
+  errors: string[],
+): void
+```
+
+## Dependencies
+
+This module has several dependencies that are essential for its operation:
+
+- `@angular-devkit/architect`: Provides types and interfaces for interacting with the Architect API.
+- Various utilities from `../../tools/esbuild/*`: Offer assistance in creating bundle options, extracting licenses, and checking for CommonJS modules.
+- `../../utils/*`: Include helpers for copy assets, getting supported browsers, and analyzing bundle budgets.
+- `./execute-post-bundle`: Contains a function for executing post-bundle operations.
+- `./i18n`: Methods for inlining internationalization assets.
+- `./options`: Provides normalized application build options needed during the build.
+
+To install these dependencies (assuming they're not bundled with the Angular CLI), you would typically use npm or yarn. However, since these dependencies are part of the Angular CLI's internal tooling, they will not need to be installed separately by the end-user.
+
+```bash
+npm install @angular-devkit/architect
+# or
+yarn add @angular-devkit/architect
+```
+
+Please note these commands are just examples; the actual dependencies would be managed within the Angular CLI project itself and wouldn't require manual installation in a typical setup.
