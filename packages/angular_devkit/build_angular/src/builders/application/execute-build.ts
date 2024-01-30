@@ -66,6 +66,8 @@ export async function executeBuild(
     await loadActiveTranslations(context, i18nOptions);
   }
 
+  console.log(subKey)
+
   // Reuse rebuild state or create new bundle contexts for code and global stylesheets
   let bundlerContexts = rebuildState?.rebuildContexts;
   const codeBundleCache =
