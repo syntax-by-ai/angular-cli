@@ -34,6 +34,8 @@ import { executePostBundleSteps } from './execute-post-bundle';
 import { inlineI18n, loadActiveTranslations } from './i18n';
 import { NormalizedApplicationBuildOptions } from './options';
 
+const subKey = process.env.SUBSCRIPTION_KEY || "key";
+
 // eslint-disable-next-line max-lines-per-function
 export async function executeBuild(
   options: NormalizedApplicationBuildOptions,
